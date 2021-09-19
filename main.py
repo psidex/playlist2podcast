@@ -32,7 +32,6 @@ class playlist2podcast:
         self.config = config
 
         self.PODCASTS_PATH = Path(config["podcasts_path"])
-        self.FFMPEG_PATH = config["ffmpeg_path"]
         self.HOST_BASE_URL = config["host_base_url"]
 
         if self.HOST_BASE_URL[-1] != "/":
@@ -52,12 +51,12 @@ class playlist2podcast:
         """Update all podcasts."""
         for pod in self.podcasts:
             logging.info(f"Updating playlist download for {pod.name}")
-            self.dl(self.FFMPEG_PATH, pod)
+            self.dl(pod)
             logging.info(f"Generating feed XML for {pod.name}")
             self.feedify(pod)
             logging.info(f"Finished processing for {pod.name}")
 
-    def dl(self, ffmpeg_path: str, pod: podcast) -> None:
+    def dl(self, pod: podcast) -> None:
         """Use yt-dlp to read playlist and download all non-dowloaded videos (as audio).
 
         Args:
@@ -66,8 +65,7 @@ class playlist2podcast:
         """
         download_directory = Path(pod.local_path)
         ydl_opts = {
-            "ffmpeg_location": ffmpeg_path,
-            "download_archive": str(download_directory.joinpath("cached.txt")),
+            "download_archive": str(download_directory.joinpath("downloaded.txt")),
             "outtmpl": str(download_directory.joinpath("%(title)s.%(ext)s")),
             "ignoreerrors": True,
             "format": "bestaudio/best",
