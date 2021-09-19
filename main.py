@@ -135,6 +135,8 @@ def main():
             logging.error(f"Failed to load config: {err}")
             return
 
+    logging.info(config)
+
     p = playlist2podcast(config)
     p.update()
 
