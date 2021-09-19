@@ -33,6 +33,7 @@ class podcast:
         """
         self.name = name
         self.playlist_url = playlist_url
+        # All strings in hosted_path after the hostname should use urllib.parse.quote.
         self.hosted_path = hosted_path
         self.local_path = local_path
 
@@ -51,7 +52,7 @@ class playlist2podcast:
             podcast(
                 name,
                 playlist_url,
-                f"{self.HOST_BASE_URL}{name}",
+                f"{self.HOST_BASE_URL}{urllib.parse.quote(name)}",
                 self.PODCASTS_PATH.joinpath(name),
             )
             for name, playlist_url in self.config["podcasts"].items()
