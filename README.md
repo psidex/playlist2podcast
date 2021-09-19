@@ -31,7 +31,7 @@ podcasts:
 
   # MUST BE playlist name : playlist URL (NOT a video URL)
   # If the playlist name in this file is incorrect the feed generation wont work.
-  playlist title: "https://www.youtube.com/playlist?list=PLTLwdZqDsAvtGmVvJqRS2czLq2YZ_ZHPJ"
+  test: "https://www.youtube.com/playlist?list=PLTLwdZqDsAvtGmVvJqRS2czLq2YZ_ZHPJ"
 ```
 
 ## Docker
