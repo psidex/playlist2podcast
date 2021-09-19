@@ -1,3 +1,4 @@
 yt-dlp
 pyyaml
 feedgen
+pytz

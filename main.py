@@ -1,3 +1,4 @@
+import datetime
 import json
 import logging
 import os
@@ -5,11 +6,10 @@ import time
 import urllib.parse
 from pathlib import Path
 
+import pytz
 import yaml
 import yt_dlp
 from feedgen.feed import FeedGenerator
-
-# TODO: Keep playlist order (see playlist_index), add thumbnail(s).
 
 
 def getdesc(infodict):
@@ -110,6 +110,16 @@ class playlist2podcast:
         fg.author({"name": podinfo["uploader"]})
         fg.link(href=podinfo["webpage_url"], rel="alternate")
 
+        thumbnail_url = ""
+        thumbnail_biggest_pixel_count = 0
+        for thumb in podinfo["thumbnails"]:
+            pixel_count = thumb["height"] * thumb["width"]
+            if pixel_count > thumbnail_biggest_pixel_count:
+                thumbnail_url = thumb["url"]
+                thumbnail_biggest_pixel_count = pixel_count
+
+        fg.logo(thumbnail_url)
+
         fg.load_extension("podcast")
         fg.podcast.itunes_category("Podcasting")
 
@@ -127,6 +137,14 @@ class playlist2podcast:
                 fe.title(fileinfo["title"])
                 fe.description(getdesc(fileinfo))
                 fe.enclosure(download_url, str(fileinfo["filesize"]), "audio/webm")
+
+                upload_date = fileinfo["upload_date"]
+                upload_date = (
+                    f"{upload_date[0:4]}-{upload_date[4:6]}-{upload_date[6:8]}"
+                )
+                upload_datetime = datetime.datetime.strptime(upload_date, "%Y-%m-%d")
+                upload_datetime = pytz.utc.localize(upload_datetime)
+                fe.pubDate(upload_datetime.strftime("%a, %d %b %Y %H:%M:%S %z"))
 
         fg.rss_str(pretty=True)
         fg.rss_file(str(podcast_dir.joinpath("podcast.xml")))
