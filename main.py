@@ -10,8 +10,8 @@ import yt_dlp
 from feedgen.feed import FeedGenerator
 
 
-def getdesc(dict):
-    desc = fileinfo["description"]
+def getdesc(infodict):
+    desc = infodict["description"]
     if desc == "":
         return "No description found."
     return desc
