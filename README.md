@@ -40,7 +40,11 @@ title gets encoded to `moneypodcast%24%24%24`, which would give you the url
 If you don't know how to do this you can use an online URL encoder such as
 [urlencoder.org](https://www.urlencoder.org/).
 
-## Config
+## Running & Config
+
+Run p2p with `python main.py`, or see below for Docker.
+
+Once running p2p will check for playlist updates once every 24 hours.
 
 p2p will look for a `config.yaml` file where it is run, if running in Docker you
 will want to mount it in `/app`, like so:
