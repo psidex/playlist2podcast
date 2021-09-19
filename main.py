@@ -9,6 +9,8 @@ import yaml
 import yt_dlp
 from feedgen.feed import FeedGenerator
 
+# TODO: Keep playlist order (see playlist_index), add thumbnail(s).
+
 
 def getdesc(infodict):
     desc = infodict["description"]
