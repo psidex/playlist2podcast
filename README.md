@@ -13,7 +13,7 @@ Uses [yt-dlp](https://github.com/yt-dlp/yt-dlp) to download the playlists and
 p2p will look for a `config.yaml` file where it is run, if running in Docker you
 will want to mount it in `/app`, like so:
 
-```Dockerfile
+```bash
 -v $(pwd)/config.yaml:/app/config.yaml:ro \
 ```
 
