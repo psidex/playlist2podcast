@@ -1,12 +1,20 @@
 import json
 import logging
 import os
+import time
 import urllib.parse
 from pathlib import Path
 
 import yaml
 import yt_dlp
 from feedgen.feed import FeedGenerator
+
+
+def getdesc(dict):
+    desc = fileinfo["description"]
+    if desc == "":
+        return "No description found."
+    return desc
 
 
 class podcast:
@@ -49,6 +57,7 @@ class playlist2podcast:
 
     def update(self):
         """Update all podcasts."""
+        logging.info("Updating podcasts")
         for pod in self.podcasts:
             logging.info(f"Updating playlist download for {pod.name}")
             self.dl(pod)
@@ -94,7 +103,7 @@ class playlist2podcast:
         fg = FeedGenerator()
 
         fg.title(podinfo["title"])
-        fg.description("Auto generated")
+        fg.description(getdesc(podinfo))
         fg.author({"name": podinfo["uploader"]})
         fg.link(href=podinfo["webpage_url"], rel="alternate")
 
@@ -108,12 +117,12 @@ class playlist2podcast:
                 with open(podcast_dir.joinpath(f"{filename}.info.json"), "r") as jsonf:
                     fileinfo = json.load(jsonf)
 
-                download_url = f"{pod.hosted_path}/{urllib.parse.quote_plus(file)}"
+                download_url = f"{pod.hosted_path}/{urllib.parse.quote(file)}"
 
                 fe = fg.add_entry()
                 fe.id(download_url)
                 fe.title(fileinfo["title"])
-                fe.description("Auto generated")
+                fe.description(getdesc(fileinfo))
                 fe.enclosure(download_url, str(fileinfo["filesize"]), "audio/webm")
 
         fg.rss_str(pretty=True)
@@ -136,7 +145,10 @@ def main():
     logging.info(config)
 
     p = playlist2podcast(config)
-    p.update()
+
+    while True:
+        p.update()
+        time.sleep(60 * 60 * 24)
 
 
 if __name__ == "__main__":
