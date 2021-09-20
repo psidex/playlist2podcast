@@ -39,6 +39,8 @@ directory that p2p saved a podcasts data to.
 
 ## Running & Config
 
+The requirements in `requirements.txt` need installing first, you can do this your own way or by doing `pip install -r requirements.txt`.
+
 Run p2p with `python main.py`, or see below for Docker.
 
 Once running p2p will check for playlist updates once every 24 hours.
