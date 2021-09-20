@@ -18,6 +18,11 @@ Takes a list of YouTube playlists and:
 The generated RSS XML file is located at
 `podcasts_path/playlist_title/podcast.xml`.
 
+If the podcast title has special characters, p2p makes the name safe for
+filesystems, so will change and/or remove special characters from the directory
+name. To get the directory name, the easiest way is to either `ls` your podcast
+directory or look in the logs.
+
 ## What Does This Not Do?
 
 This does not actually host the downloaded/created files, you will need a static
@@ -29,16 +34,8 @@ The directory you want to serve is the same one that you put as the
 
 Once you have that setup you can simply put the URL to each generated
 `podcast.xml` into your chosen podcast app, for example
-`https://podcasts.example.com/test/podcast.xml` where `test` is the title of the
-YouTube playlist.
-
-If the podcast title has special characters you will need to use the URL encoded
-text, for example if your YouTube playlist was called `moneypodcast$$$` then the
-title gets encoded to `moneypodcast%24%24%24`, which would give you the url
-`https://podcasts.example.com/moneypodcast%24%24%24/podcast.xml`.
-
-If you don't know how to do this you can use an online URL encoder such as
-[urlencoder.org](https://www.urlencoder.org/).
+`https://podcasts.example.com/test/podcast.xml` where `test` is the name of the
+directory that p2p saved the podcasts data to.
 
 ## Running & Config
 
@@ -62,12 +59,9 @@ host_base_url: "https://podcasts.example.com/"
 # The path (either on your system or inside the Docker container) that will contain the podcast data.
 podcasts_path: "/podcasts"
 
-# The list of playlists to download and host.
+# The list of playlists to download and host. MUST be playlist URLs, NOT video URLs.
 podcasts:
-
-  # MUST BE playlist name : playlist URL (NOT a video URL)
-  # If the playlist name in this file is incorrect the feed generation wont work.
-  test: "https://www.youtube.com/playlist?list=PLTLwdZqDsAvtGmVvJqRS2czLq2YZ_ZHPJ"
+  - "https://www.youtube.com/playlist?list=PLTLwdZqDsAvtGmVvJqRS2czLq2YZ_ZHPJ"
 ```
 
 ## Docker
