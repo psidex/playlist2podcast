@@ -2,7 +2,9 @@ import datetime
 import json
 import logging
 import os
+import re
 import time
+import unicodedata
 import urllib.parse
 from pathlib import Path
 
@@ -10,6 +12,28 @@ import pytz
 import yaml
 import yt_dlp
 from feedgen.feed import FeedGenerator
+
+
+def slugify(value, allow_unicode=False):
+    """
+    Taken from https://stackoverflow.com/a/295466/6396652
+    Taken from https://github.com/django/django/blob/master/django/utils/text.py
+    Convert to ASCII if 'allow_unicode' is False. Convert spaces or repeated
+    dashes to single dashes. Remove characters that aren't alphanumerics,
+    underscores, or hyphens. Convert to lowercase. Also strip leading and
+    trailing whitespace, dashes, and underscores.
+    """
+    value = str(value)
+    if allow_unicode:
+        value = unicodedata.normalize("NFKC", value)
+    else:
+        value = (
+            unicodedata.normalize("NFKD", value)
+            .encode("ascii", "ignore")
+            .decode("ascii")
+        )
+    value = re.sub(r"[^\w\s-]", "", value.lower())
+    return re.sub(r"[-\s]+", "-", value).strip("-_")
 
 
 def getdesc(infodict):
@@ -20,22 +44,24 @@ def getdesc(infodict):
 
 
 class podcast:
-    def __init__(
-        self, name: str, playlist_url: str, hosted_path: str, local_path: str
-    ) -> None:
+    def __init__(self, playlist_url: str) -> None:
         """Contains information about a podcast.
 
         Args:
-            name (str): The name of the podcast (i.e. the name of the playlist)
             playlist_url (str): The URL to the YouTube playlist
-            hosted_path (str): The URL where this podcast will be hosted
-            local_path (str): The path to where the data for this podcas tis
         """
-        self.name = name
         self.playlist_url = playlist_url
+        self.playlist_meta = {}
+
+        # To be filled later.
+        self.playlist_title = "Unknown"
+
+        # Where to download the podcast.
         # All strings in hosted_path after the hostname should use urllib.parse.quote.
-        self.hosted_path = hosted_path
-        self.local_path = local_path
+        self.hosted_path = ""
+
+        # Where it is on our filesystem.
+        self.local_path = ""
 
 
 class playlist2podcast:
@@ -48,25 +74,43 @@ class playlist2podcast:
         if self.HOST_BASE_URL[-1] != "/":
             self.HOST_BASE_URL += "/"
 
+        logging.info("Getting information for podcasts")
         self.podcasts = [
-            podcast(
-                name,
-                playlist_url,
-                f"{self.HOST_BASE_URL}{urllib.parse.quote(name)}",
-                self.PODCASTS_PATH.joinpath(name),
-            )
-            for name, playlist_url in self.config["podcasts"].items()
+            self.load_meta(podcast(playlist_url))
+            for playlist_url in self.config["podcasts"]
         ]
 
     def update(self):
         """Update all podcasts."""
         logging.info("Updating podcasts")
         for pod in self.podcasts:
-            logging.info(f"Updating playlist download for {pod.name}")
+            logging.info(f"Updating playlist download for {pod.playlist_title}")
             self.dl(pod)
-            logging.info(f"Generating feed XML for {pod.name}")
+            logging.info(f"Generating feed XML for {pod.playlist_title}")
             self.feedify(pod)
-            logging.info(f"Finished processing for {pod.name}")
+            logging.info(f"Finished processing for {pod.playlist_title}")
+
+    def load_meta(self, pod: podcast) -> podcast:
+        """Load meta information for a podcast from the YouTube playlist link.
+
+        Args:
+            pod (podcast): The podcast object to fill
+
+        Returns:
+            podcast: The filled podcast object
+        """
+        with yt_dlp.YoutubeDL() as ydl:
+            meta = ydl.extract_info(pod.playlist_url, download=False, process=False)
+
+            pod.playlist_meta = meta
+            pod.playlist_title = meta["title"]
+
+            # slugify makes its safe for fs, urllib quote makes it safe for urls.
+            title_slugged = slugify(meta["title"])
+            pod.hosted_path = f"{self.HOST_BASE_URL}{urllib.parse.quote(title_slugged)}"
+            pod.local_path = self.PODCASTS_PATH.joinpath(title_slugged)
+
+        return pod
 
     def dl(self, pod: podcast) -> None:
         """Use yt-dlp to read playlist and download all non-dowloaded videos (as audio).
@@ -75,15 +119,16 @@ class playlist2podcast:
             ffmpeg_path (str): Path to ffmpeg binary
             pod (podcast): The podcast object we are downloading for
         """
-        download_directory = Path(pod.local_path)
+        download_directory = pod.local_path
+
         ydl_opts = {
             "download_archive": str(download_directory.joinpath("downloaded.txt")),
             "outtmpl": str(download_directory.joinpath("%(title)s.%(ext)s")),
             "ignoreerrors": True,
             "format": "bestaudio/best",
             "writeinfojson": True,
-            "allow_playlist_files": True,
         }
+
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([pod.playlist_url])
 
@@ -93,26 +138,18 @@ class playlist2podcast:
         Args:
             pod (podcast): The podcast object we are processing for
         """
-        podcast_dir = Path(pod.local_path)
-
-        try:
-            # NOTE: This only works if pod.name is also the name of the playlist.
-            with open(podcast_dir.joinpath(f"{pod.name}.info.json"), "r") as jsonf:
-                podinfo = json.load(jsonf)
-        except FileNotFoundError:
-            logging.error("Config error: The config playlist name must match exactly")
-            return
+        podcast_dir = pod.local_path
 
         fg = FeedGenerator()
 
-        fg.title(podinfo["title"])
-        fg.description(getdesc(podinfo))
-        fg.author({"name": podinfo["uploader"]})
-        fg.link(href=podinfo["webpage_url"], rel="alternate")
+        fg.title(pod.playlist_meta["title"])
+        fg.description(getdesc(pod.playlist_meta))
+        fg.author({"name": pod.playlist_meta["uploader"]})
+        fg.link(href=pod.playlist_meta["webpage_url"], rel="alternate")
 
         thumbnail_url = ""
         thumbnail_biggest_pixel_count = 0
-        for thumb in podinfo["thumbnails"]:
+        for thumb in pod.playlist_meta["thumbnails"]:
             pixel_count = thumb["height"] * thumb["width"]
             if pixel_count > thumbnail_biggest_pixel_count:
                 thumbnail_url = thumb["url"]
