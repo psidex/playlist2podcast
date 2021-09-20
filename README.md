@@ -35,7 +35,7 @@ The directory you want to serve is the same one that you put as the
 Once you have that setup you can simply put the URL to each generated
 `podcast.xml` into your chosen podcast app, for example
 `https://podcasts.example.com/test/podcast.xml` where `test` is the name of the
-directory that p2p saved the podcasts data to.
+directory that p2p saved a podcasts data to.
 
 ## Running & Config
 
