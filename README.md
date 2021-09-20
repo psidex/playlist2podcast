@@ -49,7 +49,7 @@ p2p will look for a `config.yaml` file where it is run, if running in Docker you
 will want to mount it in `/app`, like so:
 
 ```bash
--v $(pwd)/config.yaml:/app/config.yaml:ro \
+-v $(pwd)/config.yaml:/app/config.yaml:ro
 ```
 
 Here's what the contents should look like:
