@@ -12,7 +12,7 @@ playlists.
 Takes a list of YouTube playlists and:
 
 - Downloads all the videos in audio only format (best quality)
-- Geneartes an RSS XML feed and writes it to a file so that the audio files can
+- Generates an RSS XML feed and writes it to a file so that the audio files can
   be used/read by podcast apps
 
 The generated RSS XML file is located at
