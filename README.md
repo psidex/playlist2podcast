@@ -18,7 +18,7 @@ Takes a list of YouTube playlists and:
 The generated RSS XML file is located at
 `podcasts_path/playlist_title/podcast.xml`.
 
-If the podcast title has special characters, p2p makes the name safe for
+If the playlist title has special characters, p2p makes the name safe for
 filesystems, so will change and/or remove special characters from the directory
 name. To get the directory name, the easiest way is to either `ls` your podcast
 directory or look in the logs.
