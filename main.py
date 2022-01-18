@@ -70,6 +70,7 @@ class playlist2podcast:
 
         self.PODCASTS_PATH = Path(config["podcasts_path"])
         self.HOST_BASE_URL = config["host_base_url"]
+        self.DATE_AFTER = config.get("dateafter")  # optional parameter
 
         if self.HOST_BASE_URL[-1] != "/":
             self.HOST_BASE_URL += "/"
@@ -128,6 +129,9 @@ class playlist2podcast:
             "format": "bestaudio/best",
             "writeinfojson": True,
         }
+
+        if self.DATE_AFTER:
+            ydl_opts["daterange"] = yt_dlp.DateRange(start=self.DATE_AFTER, end=None)
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([pod.playlist_url])

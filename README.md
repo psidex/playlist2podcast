@@ -61,6 +61,12 @@ host_base_url: "https://podcasts.example.com/"
 # The path (either on your system or inside the Docker container) that will contain the podcast data.
 podcasts_path: "/podcasts"
 
+# The date since to download videos. Will download only videos uploaded on or after this date. 
+# The date can be "YYYYMMDD" or in the format "(now|today)[+-][0-9](day|week|month|year)(s)?" 
+# (see "dateafter" on https://github.com/yt-dlp/yt-dlp#general-options for more info).
+# Optional parameter: skip it or set empty to download all videos.
+dateafter: "today-6months"
+
 # The list of playlists to download and host. MUST be playlist URLs, NOT video URLs.
 podcasts:
   - "https://www.youtube.com/playlist?list=PLTLwdZqDsAvtGmVvJqRS2czLq2YZ_ZHPJ"
