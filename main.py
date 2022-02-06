@@ -154,7 +154,10 @@ class playlist2podcast:
         thumbnail_url = ""
         thumbnail_biggest_pixel_count = 0
         for thumb in pod.playlist_meta["thumbnails"]:
-            pixel_count = thumb["height"] * thumb["width"]
+            if thumb.get("id") == "avatar_uncropped":
+                thumbnail_url = thumb["url"]
+                break
+            pixel_count = thumb.get("height", 0) * thumb.get("width", 0)
             if pixel_count > thumbnail_biggest_pixel_count:
                 thumbnail_url = thumb["url"]
                 thumbnail_biggest_pixel_count = pixel_count
